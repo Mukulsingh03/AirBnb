@@ -28,23 +28,27 @@ public class WebSecurityConfig {
     @Qualifier("handlerExceptionResolver")
     private HandlerExceptionResolver handlerExceptionResolver;
 
+   
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(
+                "/api/health",
+                "/api/auth/**"
+            ).permitAll()
+            .anyRequest().authenticated()
+        )
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
 
-        httpSecurity
-                .csrf(csrfConfig -> csrfConfig.disable())
-                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasRole("HOTEL_MANAGER")
-                        .requestMatchers("/bookings/**").authenticated()
-                        .requestMatchers("/users/**").authenticated()
-                        .anyRequest().permitAll()
-                )
-                .exceptionHandling(exHandlingConfig -> exHandlingConfig.accessDeniedHandler(accessDeniedHandler()));
+    http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return httpSecurity.build();
+    return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
