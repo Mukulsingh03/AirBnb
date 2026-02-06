@@ -1,25 +1,9 @@
-# Use OpenJDK as the base image
-FROM openjdk:23-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the Maven wrapper and source code
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
-COPY src/ src/
+COPY target/AirBnb-0.0.1-SNAPSHOT.jar app.jar
 
-# Give execute permission to the Maven wrapper
-RUN chmod +x mvnw
-
-# Build the application inside the Docker container
-RUN ./mvnw clean package -DskipTests
-
-# Copy the built JAR file
-RUN cp target/*.jar app.jar
-
-# Expose the application port
 EXPOSE 8080
 
-# Run the application
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
